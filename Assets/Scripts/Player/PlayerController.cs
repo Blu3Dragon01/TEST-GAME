@@ -1,0 +1,238 @@
+using JetBrains.Annotations;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SubsystemsImplementation;
+using UnityEngine.UIElements;
+//using static Cinemachine.DocumentationSortingAttribute;
+
+[RequireComponent(typeof(Rigidbody2D), typeof(SpriteRenderer), typeof(Animator))]
+public class PlayerController : MonoBehaviour
+{
+    //Testmode toggle
+    public bool TestMode = true;
+
+    //Component
+    Rigidbody2D rb;
+    SpriteRenderer sr;
+    Animator anim;
+
+    //Inspector balance variables
+    [SerializeField] float speed = 7.0f;
+    [SerializeField] int jumpForce = 5;
+
+    //groundcheck stuff
+    [SerializeField] bool isGrounded;
+    [SerializeField] Transform GroundCheck;
+    [SerializeField] LayerMask isGroundLayer;
+    [SerializeField] float groundCheckRadius = 0.02f;
+
+    //life stuff
+    [SerializeField] int maxLives = 5;
+    private int _lives;
+    public int Lives
+    {
+        get => _lives;
+        set
+        {
+            //if (lives > value)
+            //Respawn????
+
+            _lives = value;
+
+            //if (lives > maxLives)
+            //we've increased past our max lives so we should just be set to our max lives
+            //lives = maxLives;
+
+            //if (lives < 0)
+            //GameOver!!!
+
+            if (TestMode) Debug.Log("Lives has been set to: " + _lives.ToString());
+        }
+    }
+
+    private int _score = 0;
+    public int score
+    {
+        get => _score;
+        set
+        {
+            //if (score < value)
+            //invalid setting so throw error = possibly return out of function before setting varible
+
+            _score = value;
+
+            if (TestMode) Debug.Log("Score has been set to: " + _score.ToString());
+        }
+    }
+
+    //Coroutine
+    Coroutine jumpForceChange = null;
+
+    public void StartJumpForceChange()
+    {
+        if (jumpForceChange == null)
+        {
+            jumpForceChange = StartCoroutine(JumpForceChange());
+            return;
+        }
+
+        StopCoroutine(jumpForceChange);
+        jumpForceChange = null;
+        jumpForce /= 2;
+        StartJumpForceChange();
+    }
+
+    IEnumerator JumpForceChange()
+    {
+        jumpForce *= 2;
+        yield return new WaitForSeconds(5.0f);
+        jumpForce /= 2;
+        jumpForceChange = null;
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        sr = GetComponent<SpriteRenderer>();
+        anim = GetComponent<Animator>();
+
+        if (speed <= 0)
+        {
+            speed = 7.0f;
+            if (TestMode) Debug.Log("Default Value of Speed has changed on " + gameObject.name);
+        }
+
+        if (jumpForce <= 0)
+        {
+            jumpForce = 2;
+            if (TestMode) Debug.Log("Default Value of JumpForce has changed on " + gameObject.name);
+        }
+
+        if (groundCheckRadius <= 0)
+        {
+            groundCheckRadius = 0.02f;
+            if (TestMode) Debug.Log("Groundcheck radius value has been defaulted on " + gameObject.name);
+        }
+
+
+        if (GroundCheck == null)
+        {
+            //GroundCheck = GameObject.FindGameObjectWithTag("GroundCheck").transform;
+            GameObject obj = new GameObject();
+            obj.transform.SetParent(gameObject.transform);
+            obj.transform.localPosition = Vector3.zero;
+            obj.name = "GroundCheck";
+            GroundCheck = obj.transform;
+            if (TestMode) Debug.Log("Groundcheck object was created on " + gameObject.name);
+        }
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        float xInput = Input.GetAxisRaw("Horizontal");
+        isGrounded = Physics2D.OverlapCircle(GroundCheck.position, groundCheckRadius, isGroundLayer);
+
+        //if (isGrounded)
+        {
+           // rb.gravityScale = 1;
+           // anim.ResetTrigger("airAttack");
+        }
+
+        AnimatorClipInfo[] clipInfo = anim.GetCurrentAnimatorClipInfo(0);
+
+        if (clipInfo[0].clip.name == "Attack")
+        {
+            rb.velocity = Vector2.zero;
+        }
+        else
+        {
+            rb.velocity = new Vector2(xInput * speed, rb.velocity.y);
+            //left control for attack
+            if (Input.GetButtonDown("Fire1") && isGrounded)
+            {
+                anim.SetTrigger("isAttacking");
+            }
+        }
+
+        if (Input.GetButtonDown("Jump") && isGrounded)
+        {
+            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+        }
+
+        if (Input.GetButtonUp("Jump") && !isGrounded)
+        {
+           anim.SetTrigger("isFalling");
+        }
+
+        if (Input.GetButtonDown("Fire2") && isGrounded)
+        {
+            anim.SetTrigger("isBlocking");
+            anim.SetFloat("Input", 0);
+        }
+
+        anim.SetFloat("Input", Mathf.Abs(xInput));
+        anim.SetBool("IsGrounded", isGrounded);
+
+        //Sprite Flipping
+        if (xInput != 0) sr.flipX = (xInput < 0);
+    }
+
+    public void IncreaseGravity()
+    {
+        rb.gravityScale = 5;
+    }
+
+    //Trigger functions are called most times - but still generally require one physics body
+    //called on the frame you enter the trigger
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+
+    }
+
+    //called on the frame you exit the trigger
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+
+    }
+
+    //called on frame 2 onwards as you stay in the trigger
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+
+    }
+
+    //Collision functions are only called when one of the two objects that collide is a dynamic rigidbody
+
+    //called on the frame that you enter the collision
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        Debug.Log(collision.gameObject);
+        if (collision.gameObject.CompareTag("Chest"))
+        {
+            Destroy(collision.gameObject);
+        }
+        if (collision.gameObject.CompareTag("PowerUp"))
+        {
+            Destroy(collision.gameObject);
+        }
+        if (collision.gameObject.CompareTag("Life"))
+        {
+            Destroy (collision.gameObject);
+        }
+    }
+
+    //called on the frame that you exit the collsion
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+
+    }
+
+    //called on frame 2 onwards while you stay in the collision
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+
+    }
+}
