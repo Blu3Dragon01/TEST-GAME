@@ -2,8 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-
-public class Enemy : MonoBehaviour
+[RequireComponent(typeof(Rigidbody2D))]
+public class EnemyWalking : MonoBehaviour
 {
     public bool TestMode = true;
     [SerializeField] float moveSpeed = 1f;
@@ -14,7 +14,8 @@ public class Enemy : MonoBehaviour
 
     private Rigidbody2D rb;
     private BoxCollider2D bc;
-    private Animator anim;
+    public Animator anim;
+    private SpriteRenderer sr;
     private Transform currentPoint;
     public GameObject pointA;
     public GameObject pointB;
@@ -25,9 +26,7 @@ public class Enemy : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         bc = GetComponent<BoxCollider2D>();
-        anim = GetComponent<Animator>();
         currentPoint = pointB.transform;
-        anim.SetBool("isRunning", true);
         if (groundCheckRadius <= 0)
         {
             groundCheckRadius = 0.02f;
@@ -53,6 +52,7 @@ public class Enemy : MonoBehaviour
         Vector2 point = currentPoint.position - transform.position;
         if (currentPoint == pointB.transform && isGrounded)
         {
+            anim.SetBool("isRunning", true);
             rb.velocity = new Vector2(-speed, 0f);
         }
         else
@@ -68,7 +68,7 @@ public class Enemy : MonoBehaviour
         {
             currentPoint = pointB.transform;
         }
-        if (isFacingLeft() && isGrounded)
+        if (isFacingRight() && isGrounded)
         {
             rb.velocity = new Vector2(moveSpeed, 0f);
         }
@@ -78,7 +78,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private bool isFacingLeft()
+    private bool isFacingRight()
     {
         return transform.localScale.x > Mathf.Epsilon;
     }

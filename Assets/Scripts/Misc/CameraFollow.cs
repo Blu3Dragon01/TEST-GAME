@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
+    //This script will be attached to the main camera and follow a target.
+    //It requires:
+    //1. A reference to the player transform position
+    //2. Minimum/Maximum X and Y clamp values (areas where the camera cannot go past on the X and Y)
+    //3. A way to smoothly move while following the character
+
     [SerializeField] Transform targetPlayer;
 
     [SerializeField] float minXClamp;

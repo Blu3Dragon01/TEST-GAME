@@ -10,6 +10,7 @@ TagManager:
   - PowerUp
   - Chest
   - Life
+  - EnemyTurret
   layers:
   - Default
   - TransparentFX
