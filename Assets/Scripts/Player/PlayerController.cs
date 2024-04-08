@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     Rigidbody2D rb;
     SpriteRenderer sr;
     Animator anim;
+    AudioSource audioSource;
 
     //Inspector balance variables
     [SerializeField] float speed = 7.0f;
@@ -27,44 +28,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] LayerMask isGroundLayer;
     [SerializeField] float groundCheckRadius = 0.02f;
 
-    //life stuff
-    [SerializeField] int maxLives = 5;
-    private int _lives;
-    public int Lives
-    {
-        get => _lives;
-        set
-        {
-            //if (lives > value)
-            //Respawn????
-
-            _lives = value;
-
-            //if (lives > maxLives)
-            //we've increased past our max lives so we should just be set to our max lives
-            //lives = maxLives;
-
-            //if (lives < 0)
-            //GameOver!!!
-
-            if (TestMode) Debug.Log("Lives has been set to: " + _lives.ToString());
-        }
-    }
-
-    private int _score = 0;
-    public int score
-    {
-        get => _score;
-        set
-        {
-            //if (score < value)
-            //invalid setting so throw error = possibly return out of function before setting varible
-
-            _score = value;
-
-            if (TestMode) Debug.Log("Score has been set to: " + _score.ToString());
-        }
-    }
+    //Audio clips
+    [SerializeField] AudioClip jumpSound;
+    [SerializeField] AudioClip swordSlash;
+    [SerializeField] AudioClip lifeLost;
 
     //Coroutine
     Coroutine jumpForceChange = null;
@@ -97,6 +64,7 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
+        audioSource = GetComponent<AudioSource>();
 
         if (speed <= 0)
         {
@@ -132,6 +100,8 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Time.timeScale == 0) return;
+
         float xInput = Input.GetAxisRaw("Horizontal");
         isGrounded = Physics2D.OverlapCircle(GroundCheck.position, groundCheckRadius, isGroundLayer);
 
@@ -154,12 +124,14 @@ public class PlayerController : MonoBehaviour
             if (Input.GetButtonDown("Fire1") && isGrounded)
             {
                 anim.SetTrigger("isAttacking");
+                audioSource.PlayOneShot(swordSlash);
             }
         }
 
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            audioSource.PlayOneShot(jumpSound);
         }
 
         if (Input.GetButtonUp("Jump") && !isGrounded)
@@ -189,7 +161,23 @@ public class PlayerController : MonoBehaviour
     //called on the frame you enter the trigger
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        if (collision.CompareTag("EnemyProjectile"))
+        {
+            Destroy(collision.gameObject);
+            GameManager.Instance.lives--;
+            audioSource.PlayOneShot(lifeLost);
 
+        }
+        /*if (collision.CompareTag("Squish"))
+        {
+            collision.transform.parent.gameObject.GetComponent<Enemy>().TakeDamage(9999);
+            Destroy(collision.gameObject);
+
+            //do our bouncy stuff here
+            rb.velocity = Vector2.zero;
+            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            audioSource.PlayOneShot(stompSound);
+        }*/
     }
 
     //called on the frame you exit the trigger

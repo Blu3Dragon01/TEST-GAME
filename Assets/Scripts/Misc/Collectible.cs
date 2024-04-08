@@ -4,16 +4,22 @@ using UnityEngine;
 
 public class Collectible : MonoBehaviour
 {
+    AudioSource audioSource;
+
     public enum PickupType
     {
-        PowerUp = 5,
-        Score = 2,
+        PowerUp,
+        Score,
         Life,
     }
 
     [SerializeField] PickupType currentCollectible;
-    [SerializeField] float timeToDestroy = 2;
+    [SerializeField] AudioClip pickUpSound;
 
+    private void Start()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player"))
@@ -27,13 +33,15 @@ public class Collectible : MonoBehaviour
                     pc.StartJumpForceChange();
                     break;
                 case PickupType.Score:
-                    pc.score++;
+                    GameManager.Instance.score++;
                     break;
                 case PickupType.Life:
-                    pc.Lives++;
+                    GameManager.Instance.lives++;
                     break;
             }
-            Destroy(gameObject, timeToDestroy);
+            audioSource.PlayOneShot(pickUpSound);
+            GetComponent<SpriteRenderer>().enabled = false;
+            Destroy(gameObject, pickUpSound.length);
         }
     }
 }

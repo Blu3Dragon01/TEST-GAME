@@ -11,6 +11,8 @@ TagManager:
   - Chest
   - Life
   - EnemyTurret
+  - EnemyProjectile
+  - CheckPoint
   layers:
   - Default
   - TransparentFX

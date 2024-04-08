@@ -28,18 +28,21 @@ public class EnemyTurrent : Enemies
     // Update is called once per frame
     void Update()
     {
-        AnimatorClipInfo[] curPlayingClips = anim.GetCurrentAnimatorClipInfo(0);
-        
-        distance = Vector3.Distance(playerTarget.transform.position, transform.position);
+        if (!GameManager.Instance.PlayerInstance) return;
+        sr.flipX = (GameManager.Instance.PlayerInstance.transform.position.x < transform.position.x) ? true : false;
 
-        if (playerTarget.transform.position.x < transform.position.x) 
+        /*distance = Vector3.Distance(playerTarget.transform.position, transform.position);
+
+        if (playerTarget.transform.position.x < transform.position.x)
         {
-            sr.flipX = true;        
+            sr.flipX = true;
         }
         else
         {
-            sr.flipX= false;
-        }
+            sr.flipX = false;
+        }*/
+
+        AnimatorClipInfo[] curPlayingClips = anim.GetCurrentAnimatorClipInfo(0);
 
         if (distance <= distanceApart)
         {

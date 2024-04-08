@@ -27,7 +27,7 @@ public class Enemies : MonoBehaviour
         health = maxHealth;
     }
 
-    public virtual void TakeDamage(int damage)
+    /*public virtual void TakeDamage(int damage)
     {
         health -= damage;
 
@@ -36,5 +36,5 @@ public class Enemies : MonoBehaviour
             anim.SetTrigger("Death");
             Destroy(gameObject, 2);
         }
-    }
+    }*/
 }

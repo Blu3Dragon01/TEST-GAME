@@ -12,6 +12,7 @@ public class SpawnCollectible : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        
         sr = GetComponent<SpriteRenderer>();
     }
     [SerializeField] GameObject[] itemsToSpawn;

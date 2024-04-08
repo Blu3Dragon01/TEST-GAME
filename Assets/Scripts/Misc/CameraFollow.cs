@@ -10,8 +10,6 @@ public class CameraFollow : MonoBehaviour
     //2. Minimum/Maximum X and Y clamp values (areas where the camera cannot go past on the X and Y)
     //3. A way to smoothly move while following the character
 
-    [SerializeField] Transform targetPlayer;
-
     [SerializeField] float minXClamp;
     [SerializeField] float maxXClamp;
     [SerializeField] float minYClamp;
@@ -19,14 +17,18 @@ public class CameraFollow : MonoBehaviour
 
     [SerializeField] float smoothTime = 0.2f;
 
-    private Vector3 velocity;
+    private Vector3 velocity = Vector3.zero;
     // Update is called once per frame
     void FixedUpdate()
     {
+        if (!GameManager.Instance) return;
+        if (!GameManager.Instance.PlayerInstance) return;
+
         Vector3 cameraPos = transform.position;
 
-        cameraPos.x = Mathf.Clamp(targetPlayer.transform.position.x,minXClamp, maxXClamp);
-        cameraPos.x = Mathf.Clamp(targetPlayer.transform.position.y, minYClamp, maxYClamp);
+        cameraPos.x = Mathf.Clamp(GameManager.Instance.PlayerInstance.transform.position.x,minXClamp, maxXClamp);
+        cameraPos.y = Mathf.Clamp(GameManager.Instance.PlayerInstance.transform.position.y, minYClamp, maxYClamp);
+
         transform.position = Vector3.SmoothDamp(transform.position, cameraPos, ref velocity, smoothTime);
     }
 }
